@@ -23,5 +23,15 @@ gcloud projects list
 gcloud config set project fastapi-kms
 ```
 
+- Create and Deploy app on GCP
+
+```bash
+gcloud app create
+gcloud app deploy
+```
+
 - The app is deployed [here](https://fastapi-kms.ey.r.appspot.com/).
+- API documentation
+  - [Swagger UI](https://fastapi-kms.ey.r.appspot.com/docs)
+  - [Redoc](https://fastapi-kms.ey.r.appspot.com/redoc)  
 
