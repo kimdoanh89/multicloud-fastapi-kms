@@ -33,5 +33,5 @@ gcloud app deploy
 - The app is deployed [here](https://fastapi-kms.ey.r.appspot.com/).
 - API documentation
   - [Swagger UI](https://fastapi-kms.ey.r.appspot.com/docs)
-  - [Redoc](https://fastapi-kms.ey.r.appspot.com/redoc)  
+  - [Redoc](https://fastapi-kms.ey.r.appspot.com/redoc) 
 
