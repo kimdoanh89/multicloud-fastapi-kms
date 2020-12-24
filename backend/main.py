@@ -7,9 +7,9 @@ app = FastAPI()
 app.include_router(api_router, prefix="/v1")
 
 
-# @app.get("/")
-# async def root():
-#     return {"message": "Hello Bigger Applications!"}
+@app.get("/")
+async def root():
+    return {"message": "Hello Bigger Applications!"}
 
 
 if __name__ == "__main__":
