@@ -1,47 +1,7 @@
-from datetime import datetime
-from enum import Enum
-
 from fastapi import APIRouter, Depends, status, HTTPException
 from fastapi.encoders import jsonable_encoder
 from fastapi.security import OAuth2PasswordBearer
-from pydantic import BaseModel, EmailStr
-
-
-class FullName(BaseModel):
-    first_name: str
-    last_name: str
-
-
-class UserRole(str, Enum):
-    default = "Default/Standard ISM User"
-    admin = "ISM Administrator"
-    technical = "ISM Technical User Administrator"
-
-
-class ActiveTimeRange(BaseModel):
-    active_from: datetime
-    active_to: datetime
-
-
-class UserBase(BaseModel):
-    username: str
-    email: EmailStr
-    user_role: UserRole = UserRole.default
-    active_time: ActiveTimeRange
-    full_name: FullName
-
-
-class UserIn(UserBase):
-    password: str
-
-
-class UserOut(UserBase):
-    pass
-
-
-class UserInDB(UserBase):
-    hashed_password: str
-
+from backend import schemas
 
 router = APIRouter()
 
@@ -52,8 +12,8 @@ users = {
         "email": "user@example.com",
         "user_role": "Default/Standard ISM User",
         "active_time": {
-          "active_from": "2020-12-22T17:16:57.545Z",
-          "active_to": "2020-12-22T17:16:57.545Z"
+            "active_from": "2020-12-22T17:16:57.545Z",
+            "active_to": "2020-12-22T17:16:57.545Z"
         },
         "full_name": {
             "first_name": "string",
@@ -88,14 +48,14 @@ async def read_user(username: str):
 
 @router.post(
     "/",
-    response_model=UserOut,
+    response_model=schemas.UserOut,
     status_code=status.HTTP_201_CREATED,
     summary="Create a user",
     response_description="The created user",
     deprecated=False,
     # description="Create a user with all information, username, full name, password, user role, active time range",
 )
-async def create_user(user: UserIn):
+async def create_user(user: schemas.UserIn):
     """
     Create a user with all information:
 
@@ -114,16 +74,16 @@ async def create_user(user: UserIn):
     return user
 
 
-@router.put("/{username}", response_model=UserOut)
-async def update_user(username: str, user: UserIn):
+@router.put("/{username}", response_model=schemas.UserOut)
+async def update_user(username: str, user: schemas.UserIn):
     update_user_encoded = jsonable_encoder(user)
     return update_user_encoded
 
 
-@router.patch("/{username}", response_model=UserOut)
-async def update_user(username: str, user: UserIn):
+@router.patch("/{username}", response_model=schemas.UserOut)
+async def update_user(username: str, user: schemas.UserIn):
     stored_user_data = users[username]
-    stored_user_model = UserIn(**stored_user_data)
+    stored_user_model = schemas.UserIn(**stored_user_data)
     update_data = user.dict(exclude_unset=True)
     updated_user = stored_user_model.copy(update=update_data)
     users[username] = jsonable_encoder(updated_user)

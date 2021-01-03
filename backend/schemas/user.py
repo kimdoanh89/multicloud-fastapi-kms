@@ -1,37 +1,39 @@
-from typing import Optional
-
+from datetime import datetime
+from enum import Enum
 from pydantic import BaseModel, EmailStr
 
 
-# Shared properties
+class FullName(BaseModel):
+    first_name: str
+    last_name: str
+
+
+class UserRole(str, Enum):
+    default = "Default/Standard ISM User"
+    admin = "ISM Administrator"
+    technical = "ISM Technical User Administrator"
+
+
+class ActiveTimeRange(BaseModel):
+    active_from: datetime
+    active_to: datetime
+
+
 class UserBase(BaseModel):
-    email: Optional[EmailStr] = None
-    is_active: Optional[bool] = True
-    is_superuser: bool = False
-    full_name: Optional[str] = None
-
-
-# Properties to receive via API on creation
-class UserCreate(UserBase):
+    username: str
     email: EmailStr
+    user_role: UserRole = UserRole.default
+    active_time: ActiveTimeRange
+    full_name: FullName
+
+
+class UserIn(UserBase):
     password: str
 
 
-# Properties to receive via API on update
-class UserUpdate(UserBase):
-    password: Optional[str] = None
-
-
-class UserInDBBase(UserBase):
-    id: Optional[int] = None
-
-    class Config:
-        orm_mode = True
-
-
-class User(UserInDBBase):
+class UserOut(UserBase):
     pass
 
 
-class UserInDB(UserInDBBase):
+class UserInDB(UserBase):
     hashed_password: str

@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 import uvicorn
 
-from api.api_v1.api import api_router
+from backend.api.api_v1.api import api_router
 
 app = FastAPI()
 app.include_router(api_router, prefix="/v1")
@@ -9,7 +9,7 @@ app.include_router(api_router, prefix="/v1")
 
 @app.get("/")
 async def root():
-    return {"message": "Hello Bigger Applications!"}
+    return {"message": "Hello Bigger Applications new3!"}
 
 
 if __name__ == "__main__":
