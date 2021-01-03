@@ -1,35 +1,7 @@
 from fastapi import APIRouter, Query
 from cryptography.fernet import Fernet
-from typing import Optional
-from enum import Enum
 
-from pydantic import BaseModel, Field
-
-
-class KeyType(str, Enum):
-    aes = "AES"
-    rsa = "RSA"
-    ec = "EC"
-
-
-class Key(BaseModel):
-    key_name: str = Query(..., min_length=3, max_length=50)
-    group: str = Query(..., min_length=3, max_length=50)
-    key_type: KeyType
-    key_description: Optional[str] = Field(
-        None, title="The description of the key", max_length=300
-    )
-
-    # class Config:
-    #     schema_extra = {
-    #         "example": {
-    #             "key_name": "Foo",
-    #             "group": "Bar",
-    #             "key_type": "AES",
-    #             "key_description": "This is symmetric key"
-    #         }
-    #     }
-
+from backend import schemas
 
 router = APIRouter()
 
@@ -45,9 +17,10 @@ async def read_key(key_name: str):
 
 
 @router.post("/")
-def create_key(key: Key):
+def create_key(key: schemas.Key):
     """
     Create a new key.
+    
     Validation for keyname, group, and keyType (Enum: AES, RSA, EC)
     """
     value = Fernet.generate_key()
