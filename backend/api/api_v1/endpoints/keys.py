@@ -20,7 +20,7 @@ async def read_key(key_name: str):
 def create_key(key: schemas.Key):
     """
     Create a new key.
-    
+
     Validation for keyname, group, and keyType (Enum: AES, RSA, EC)
     """
     value = Fernet.generate_key()
