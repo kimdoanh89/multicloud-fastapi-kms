@@ -2,27 +2,25 @@ from fastapi import APIRouter, Depends, status, HTTPException
 from fastapi.encoders import jsonable_encoder
 from fastapi.security import OAuth2PasswordBearer
 from backend import schemas
+from backend.db import models, crud
+from sqlalchemy.orm import Session
+
+from backend.db.database import SessionLocal, engine
+
+models.Base.metadata.create_all(bind=engine)
 
 router = APIRouter()
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
-users = {
-    "admin": {
-        "username": "Admin",
-        "email": "user@example.com",
-        "user_role": "Default/Standard ISM User",
-        "active_time": {
-            "active_from": "2020-12-22T17:16:57.545Z",
-            "active_to": "2020-12-22T17:16:57.545Z"
-        },
-        "full_name": {
-            "first_name": "string",
-            "last_name": "string"
-        },
-        "password": "string"
-    }
 
-}
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 
 @router.get("/")
@@ -35,15 +33,20 @@ async def read_user_me():
     return {"username": "fakecurrentuser"}
 
 
-@router.get("/{username}")
-async def read_user(username: str):
-    if username not in users:
+@router.get(
+    "/{username}",
+    # response_model=schemas.UserOut,
+    summary="Get User by Username"
+)
+async def read_user(username, db: Session = Depends(get_db)):
+    db_user = crud.get_user_by_username(username=username, db=db)
+    if not db_user:
         raise HTTPException(
             status_code=404,
             detail="User not found",
             headers={"X-Error": "There goes my error!"},
         )
-    return {"username": username}
+    return db_user
 
 
 @router.post(
@@ -55,7 +58,7 @@ async def read_user(username: str):
     deprecated=False,
     # description="Create a user with all information, username, full name, password, user role, active time range",
 )
-async def create_user(user: schemas.UserIn):
+async def create_user(user: schemas.UserIn, db: Session = Depends(get_db)):
     """
     Create a user with all information:
 
@@ -71,20 +74,27 @@ async def create_user(user: schemas.UserIn):
     The Active To field allows you to deactivate the user at a specific time.
     - **full_name**: first name and last name
     """
+    db_user = crud.get_user_by_email(db=db, email=user.email)
+    if db_user:
+        raise HTTPException(status_code=400, detail="Email already registered")
+    db_user = crud.get_user_by_username(db=db, username=user.username)
+    if db_user:
+        raise HTTPException(status_code=400, detail="Username already registered")
+    crud.create_user(db=db, user=user)
+
     return user
 
 
 @router.put("/{username}", response_model=schemas.UserOut)
-async def update_user(username: str, user: schemas.UserIn):
+async def update_user(user: schemas.UserIn):
     update_user_encoded = jsonable_encoder(user)
     return update_user_encoded
 
 
-@router.patch("/{username}", response_model=schemas.UserOut)
-async def update_user(username: str, user: schemas.UserIn):
-    stored_user_data = users[username]
-    stored_user_model = schemas.UserIn(**stored_user_data)
-    update_data = user.dict(exclude_unset=True)
-    updated_user = stored_user_model.copy(update=update_data)
-    users[username] = jsonable_encoder(updated_user)
-    return updated_user
+@router.delete("{email}")
+async def delete_user_by_email(email: str, db: Session = Depends(get_db)):
+    db_user = crud.get_user_by_email(db, email=email)
+    if not db_user:
+        raise HTTPException(status_code=404, detail="Item not found!")
+    user = crud.remove_by_email(db=db, email=email)
+    return user

@@ -2,7 +2,7 @@ from typing import Optional
 from enum import Enum
 
 from pydantic import BaseModel, Field
-from fastapi import Query
+from fastapi import Body
 
 
 class KeyType(str, Enum):
@@ -11,11 +11,11 @@ class KeyType(str, Enum):
     ec = "EC"
 
 
-class Key(BaseModel):
-    key_name: str = Query(..., min_length=3, max_length=50)
-    group: str = Query(..., min_length=3, max_length=50)
-    key_type: KeyType
-    key_description: Optional[str] = Field(
+class KeyBase(BaseModel):
+    name: str = Body(..., min_length=3, max_length=50)
+    group: str = Body(..., min_length=3, max_length=50)
+    type: KeyType
+    description: Optional[str] = Field(
         None, title="The description of the key", max_length=300
     )
 
@@ -28,3 +28,15 @@ class Key(BaseModel):
     #             "key_description": "This is symmetric key"
     #         }
     #     }
+
+
+class KeyCreate(KeyBase):
+    pass
+
+
+class KeyInDB(KeyBase):
+    id: int
+    owner_id: int
+
+    class Config:
+        orm_mode = True

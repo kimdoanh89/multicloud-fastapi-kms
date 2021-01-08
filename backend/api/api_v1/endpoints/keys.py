@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Query
+from fastapi import APIRouter
 from cryptography.fernet import Fernet
 
 from backend import schemas
@@ -17,17 +17,17 @@ async def read_key(key_name: str):
 
 
 @router.post("/")
-def create_key(key: schemas.Key):
+def create_key(key: schemas.KeyCreate):
     """
     Create a new key.
 
-    Validation for keyname, group, and keyType (Enum: AES, RSA, EC)
+    Validation for key name, group, and keyType (Enum: AES, RSA, EC)
     """
     value = Fernet.generate_key()
     result = {
-        "key_name": key.key_name,
-        "key_description": key.key_description,
-        "type": key.key_type.value,
+        "key_name": key.name,
+        "key_description": key.description,
+        "type": key.type.value,
         "group": key.group,
         "value": value,
     }
