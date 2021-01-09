@@ -1,15 +1,16 @@
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI
 import uvicorn
 
 from backend.api.api_v1.api import api_router
-# from fastapi.security import OAuth2PasswordBearer
+from backend.db import models
+from backend.db.database import engine
 
-# oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+models.Base.metadata.create_all(bind=engine)
+
 app = FastAPI()
 app.include_router(
     api_router,
     prefix="/v1",
-    # dependencies=[Depends(oauth2_scheme)]
 )
 
 

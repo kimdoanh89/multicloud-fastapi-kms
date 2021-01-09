@@ -1,7 +1,9 @@
 from sqlalchemy.orm import Session
+from typing import Any
 
 from . import models
 from backend import schemas
+from backend.api.deps import get_password_hash
 
 
 def get_user_by_email(db: Session, email: str):
@@ -12,12 +14,16 @@ def get_user_by_username(db: Session, username: str):
     return db.query(models.User).filter(models.User.username == username).first()
 
 
+def get_user_by_id(db: Session, user_id: Any):
+    return db.query(models.User).filter(models.User.id == user_id).first()
+
+
 def get_users(db: Session, skip: int = 0, limit: int = 100):
     return db.query(models.User).offset(skip).limit(limit).all()
 
 
 def create_user(db: Session, user: schemas.UserCreate):
-    fake_hashed_password = user.password + "notreallyhashed"
+    hashed_pwd = get_password_hash(user.password)
     db_user = models.User(
         username=user.username,
         email=user.email,
@@ -26,22 +32,15 @@ def create_user(db: Session, user: schemas.UserCreate):
         active_to=user.active_to,
         first_name=user.first_name,
         last_name=user.last_name,
-        hashed_password=fake_hashed_password)
+        hashed_password=hashed_pwd)
     db.add(db_user)
     db.commit()
     db.refresh(db_user)
     return db_user
 
 
-def remove_by_email(db: Session, email: str):
-    obj = db.query(models.User).filter(models.User.email == email).first()
-    db.delete(obj)
-    db.commit()
-    return obj
-
-
-def remove_by_username(db: Session, username: str):
-    obj = db.query(models.User).filter(models.User.username == username).first()
+def remove_by_id(db: Session, user_id: int):
+    obj = db.query(models.User).filter(models.User.id == user_id).first()
     db.delete(obj)
     db.commit()
     return obj

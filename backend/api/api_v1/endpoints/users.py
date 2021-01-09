@@ -1,7 +1,7 @@
 from typing import List
 from fastapi import APIRouter, Depends, status, HTTPException
 from backend import schemas
-from backend.db import crud
+from backend.db import crud_user
 from sqlalchemy.orm import Session
 from backend.api.deps import get_db
 
@@ -10,17 +10,17 @@ router = APIRouter()
 
 @router.get("/", response_model=List[schemas.User])
 async def read_users(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
-    users = crud.get_users(db=db, skip=skip, limit=limit)
+    users = crud_user.get_users(db=db, skip=skip, limit=limit)
     return users
 
 
 @router.get(
-    "/{username}",
+    "/{user_id}",
     response_model=schemas.User,
     summary="Get user by username"
 )
-async def read_user(username, db: Session = Depends(get_db)):
-    db_user = crud.get_user_by_username(username=username, db=db)
+async def read_user(user_id: str, db: Session = Depends(get_db)):
+    db_user = crud_user.get_user_by_id(user_id=user_id, db=db)
     if not db_user:
         raise HTTPException(
             status_code=404,
@@ -32,7 +32,7 @@ async def read_user(username, db: Session = Depends(get_db)):
 
 @router.post(
     "/",
-    response_model=schemas.User,
+    response_model=schemas.UserBase,
     status_code=status.HTTP_201_CREATED,
     summary="Create a user",
     response_description="The created user",
@@ -55,30 +55,25 @@ async def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
     The Active To field allows you to deactivate the user at a specific time.
     - **full_name**: first name and last name
     """
-    db_user = crud.get_user_by_email(db=db, email=user.email)
+    db_user = crud_user.get_user_by_email(db=db, email=user.email)
     if db_user:
         raise HTTPException(status_code=400, detail="Email already registered")
-    db_user = crud.get_user_by_username(db=db, username=user.username)
+    db_user = crud_user.get_user_by_username(db=db, username=user.username)
     if db_user:
         raise HTTPException(status_code=400, detail="Username already registered")
-    crud.create_user(db=db, user=user)
+    crud_user.create_user(db=db, user=user)
 
     return user
 
 
-@router.delete("/{email}", summary="Delete user by email",)
-async def delete_user_by_email(email: str, db: Session = Depends(get_db)):
-    db_user = crud.get_user_by_email(db, email=email)
+@router.delete(
+    "/{user_id}",
+    response_model=schemas.User,
+    summary="Delete user by email",)
+async def delete_user_by_id(user_id: str, db: Session = Depends(get_db)):
+    db_user = crud_user.get_user_by_id(db, user_id=user_id)
     if not db_user:
         raise HTTPException(status_code=404, detail="Item not found!")
-    user = crud.remove_by_email(db=db, email=email)
+    user = crud_user.remove_by_id(db=db, user_id=user_id)
     return user
 
-
-@router.delete("/{username}", summary="Delete user by username",)
-async def delete_user_by_username(username: str, db: Session = Depends(get_db)):
-    db_user = crud.get_user_by_username(db, username=username)
-    if not db_user:
-        raise HTTPException(status_code=404, detail="Item not found!")
-    user = crud.remove_by_username(db=db, username=username)
-    return user
