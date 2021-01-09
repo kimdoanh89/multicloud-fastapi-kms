@@ -19,12 +19,8 @@ class UserBase(BaseModel):
     last_name: str
 
 
-class UserIn(UserBase):
+class UserCreate(UserBase):
     password: str
-
-
-class UserOut(UserBase):
-    pass
 
 
 class UserInDBBase(UserBase):
@@ -33,6 +29,11 @@ class UserInDBBase(UserBase):
 
     class Config:
         orm_mode = True
+
+
+# Additional properties to return via API
+class User(UserInDBBase):
+    pass
 
 
 class UserInDB(UserInDBBase):
