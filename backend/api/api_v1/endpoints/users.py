@@ -4,14 +4,20 @@ from backend import schemas
 from backend.db import crud_user
 from sqlalchemy.orm import Session
 from backend.api.deps import get_db
+from backend.api.deps import get_current_user
 
 router = APIRouter()
 
 
-@router.get("/", response_model=List[schemas.User])
+@router.get("/", response_model=List[schemas.User], summary="List all users")
 async def read_users(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     users = crud_user.get_users(db=db, skip=skip, limit=limit)
     return users
+
+
+@router.get("/me", response_model=schemas.User, summary="Get current user")
+async def read_users_me(current_user: schemas.User = Depends(get_current_user)):
+    return current_user
 
 
 @router.get(
@@ -19,7 +25,7 @@ async def read_users(skip: int = 0, limit: int = 100, db: Session = Depends(get_
     response_model=schemas.User,
     summary="Get user by username"
 )
-async def read_user(user_id: str, db: Session = Depends(get_db)):
+async def read_user(user_id: int, db: Session = Depends(get_db)):
     db_user = crud_user.get_user_by_id(user_id=user_id, db=db)
     if not db_user:
         raise HTTPException(
@@ -69,11 +75,15 @@ async def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
 @router.delete(
     "/{user_id}",
     response_model=schemas.User,
-    summary="Delete user by email",)
-async def delete_user_by_id(user_id: str, db: Session = Depends(get_db)):
+    summary="Delete user by user id", )
+async def delete_user_by_id(user_id: int, db: Session = Depends(get_db)):
+    if user_id == 1:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Can not delete this superuser!"
+        )
     db_user = crud_user.get_user_by_id(db, user_id=user_id)
     if not db_user:
         raise HTTPException(status_code=404, detail="Item not found!")
     user = crud_user.remove_by_id(db=db, user_id=user_id)
     return user
-

@@ -1,9 +1,9 @@
 from sqlalchemy.orm import Session
-from typing import Any
+from typing import Any, Optional
 
 from . import models
 from backend import schemas
-from backend.api.deps import get_password_hash
+from backend.api.deps import get_password_hash, verify_password
 
 
 def get_user_by_email(db: Session, email: str):
@@ -44,3 +44,13 @@ def remove_by_id(db: Session, user_id: int):
     db.delete(obj)
     db.commit()
     return obj
+
+
+def authenticate(db: Session, username: str, password: str) -> Optional[schemas.User]:
+    user = get_user_by_username(db=db, username=username)
+    # breakpoint()
+    if not user:
+        return None
+    if not verify_password(password, user.hashed_password):
+        return None
+    return user

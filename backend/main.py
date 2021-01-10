@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends
 import uvicorn
 
 from backend.api.api_v1.api import api_router
@@ -21,4 +21,3 @@ async def root():
 
 if __name__ == "__main__":
     uvicorn.run("main:app", reload=True, port=8000)
-

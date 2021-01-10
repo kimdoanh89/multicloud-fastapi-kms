@@ -16,7 +16,7 @@ async def read_key(key_name: str):
     return {"key_name": key_name}
 
 
-@router.post("/")
+@router.post("/", response_model=schemas.KeyCreate)
 def create_key(key: schemas.KeyCreate):
     """
     Create a new key.
@@ -31,4 +31,4 @@ def create_key(key: schemas.KeyCreate):
         "group": key.group,
         "value": value,
     }
-    return result
+    return key

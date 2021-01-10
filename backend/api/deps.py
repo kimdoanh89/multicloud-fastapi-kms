@@ -15,7 +15,7 @@ from backend import schemas
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 8
+ACCESS_TOKEN_EXPIRE_MINUTES = 60
 SECRET_KEY = "kOamqPYMUV8mbmOZ1RF6emvMPMKgZSHSv7EH36IpSS8="
 
 reusable_oauth2 = OAuth2PasswordBearer(
